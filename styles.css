@@ -91,3 +91,8 @@ button:active{
     /* background-color: #5387cc; */
     transform: scale(0.98);
 }
+
+#output{
+    font-size: 24px;
+    font-weight: bold;
+}

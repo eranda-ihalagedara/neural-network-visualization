@@ -1,5 +1,6 @@
 const canvas = document.getElementById('drawing-pad');
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', {alpha: false, willReadFrequently: true});
+const output = document.getElementById('output');
 
 let isDrawing = false;
 let lastX = 0;
@@ -19,6 +20,7 @@ function draw(e) {
     ctx.stroke();
 
     [lastX, lastY] = [e.offsetX, e.offsetY];
+    // predictValues();
 }
 
 function stopDrawing() {
@@ -35,6 +37,7 @@ clearButton.addEventListener('click', clearCanvas);
 
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    output.innerText = '';
 }
 
 const brushSizeInput = document.getElementById('brush-size');
@@ -51,6 +54,7 @@ function updateBrush() {
 
     brushSizeValue.textContent = size;
     brushSmoothnessValue.textContent = smoothness;
+    ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = size;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -59,3 +63,36 @@ function updateBrush() {
 }
 
 updateBrush();
+
+let model;
+
+async function loadModel() {
+    model = await tf.loadLayersModel('models/mnist/saved_model/mnist-model.json');
+    console.log('Model Loaded');
+}
+
+loadModel();
+
+const predictButton = document.getElementById('btn-predict');
+predictButton.addEventListener('click', predictValues);
+async function predictValues() {
+    if (!model) {
+        console.log('Model not loaded');
+        return;
+    }
+    
+    const ctxImage = ctx.getImageData(0, 0, canvas.height, canvas.width);
+    const inputImg = tf.tidy(() => {
+        const image = tf.browser.fromPixels(ctxImage, 1);
+        const reImg = image.resizeBilinear([28,28]).toFloat().div(tf.scalar(255));
+        return tf.expandDims(reImg, 0);
+    });
+
+    const pred = tf.tidy(() => {
+        const preds = model.predict(inputImg).argMax(-1);
+        return preds.dataSync()[0];
+    });
+
+    output.innerText = pred;
+}
+
