@@ -20,7 +20,6 @@ function draw(e) {
     ctx.stroke();
 
     [lastX, lastY] = [e.offsetX, e.offsetY];
-    // predictValues();
 }
 
 function stopDrawing() {
@@ -68,7 +67,7 @@ let model;
 
 async function loadModel() {
     model = await tf.loadLayersModel('models/mnist/saved_model/mnist-model.json');
-    console.log('Model Loaded');
+    console.log('MNIST Model Loaded');
 }
 
 loadModel();
@@ -78,6 +77,7 @@ predictButton.addEventListener('click', predictValues);
 async function predictValues() {
     if (!model) {
         console.log('Model not loaded');
+        output.innerText = '';
         return;
     }
     
@@ -95,4 +95,3 @@ async function predictValues() {
 
     output.innerText = pred;
 }
-
