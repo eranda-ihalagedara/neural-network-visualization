@@ -74,6 +74,7 @@ loadModel();
 
 const predictButton = document.getElementById('btn-predict');
 predictButton.addEventListener('click', predictValues);
+
 async function predictValues() {
     if (!model) {
         console.log('Model not loaded');
