@@ -1,3 +1,7 @@
+import { DrawingPad } from "/js/drawing-pad.js";
+import { ModelController } from "/js/model-controller.js";
+
+/*
 const canvas = document.getElementById('drawing-pad');
 const ctx = canvas.getContext('2d', {alpha: false, willReadFrequently: true});
 const output = document.getElementById('output');
@@ -62,7 +66,24 @@ function updateBrush() {
 }
 
 updateBrush();
+*/
 
+const modelController = new ModelController();
+const drawingPad = new DrawingPad();
+
+function main() {
+    drawingPad.init();
+    modelController.loadModel();
+    const predictButton = document.getElementById('btn-predict');
+    const output = document.getElementById('output');
+    predictButton.addEventListener('click', () => {
+        modelController.predictValues(drawingPad.getImageData(), output)
+    });
+}
+
+main();
+
+/*
 let model;
 
 async function loadModel() {
@@ -96,3 +117,4 @@ async function predictValues() {
 
     output.innerText = pred;
 }
+*/

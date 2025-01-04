@@ -1,10 +1,10 @@
 // import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
 import * as THREE from 'three';
-import { getYlGnBuColor_r } from './colormaps.js';
+import { getYlGnBuColor_r } from './colormap.js';
 
 const container = document.querySelector('#viz-container');
 const canvas = document.querySelector('#viz-canvas');
-console.log(canvas);
+// console.log(canvas);
 const fov = 45 // AKA Field of View
 const width = container.offsetWidth;
 const height = container.offsetHeight;
