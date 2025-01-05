@@ -108,3 +108,8 @@ button:active{
     width: 100%;
     height: 100%;
 }
+
+#model-out{
+    height: 200px;
+    width: 100%;
+}
