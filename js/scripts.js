@@ -1,6 +1,6 @@
 import { DrawingPad } from "/js/drawing-pad.js";
 import { ModelController } from "/js/model-controller.js";
-import { Visualizer } from "/js/visualize.js";
+import { Visualizer } from "/js/visualizer.js";
 
 const modelController = new ModelController();
 const drawingPad = new DrawingPad();
