@@ -29,6 +29,7 @@ export class Visualizer {
         this.scene.add(directionalLight);
 
         this.cursor = new THREE.Vector3(1, 0, 0);
+        this.step = 1;
 
         // this.plotCube(1, getYlGnBuColor_r(0.8), 0.5, new THREE.Vector3(1, 2, 0));
         // this.renderScene();
@@ -90,12 +91,20 @@ export class Visualizer {
             const aRange = maxVal - minVal;
             for (let i = 0; i < layerActivations.length; i++) {
                 this.plotCube(0.8, getYlGnBuColor_r((layerActivations[i]-minVal)/aRange), 0.5, this.cursor);
-                this.cursor.x += 1;
+                this.cursor.x += this.step;
             }
         } else if (dims === 2) {
             const maxVal = Math.max(...layerActivations.flat());   
             const minVal = Math.min(...layerActivations.flat());
             const aRange = maxVal - minVal;
+            for (let i = 0; i < layerActivations.length; i++) {
+                for (let j = 0; j < layerActivations[i].length; j++) {
+                    this.plotCube(0.8, getYlGnBuColor_r((layerActivations[i][j]-minVal)/aRange), 0.5, this.cursor);
+                    this.cursor.x += this.step;
+                }
+                this.cursor.x = startPos[0];
+                this.cursor.y += this.step;
+            }
         } else if (dims === 3) {
         }
 
