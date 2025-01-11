@@ -34,6 +34,10 @@ export class ModelController {
             inputs: this.model.inputs,
             outputs: this.model.layers.map(layer => layer.output)
           });
+        this.model.layers.forEach((layer, index) => {
+            console.log(`Layer ${index}: ${layer.outputShape.slice(1)}`);
+        })
+        // this.intermediateModel.summary();
     }
 
     async predictIntermediateLayerOutputs(ctxImage) {

@@ -13,9 +13,10 @@ function main() {
     const predictButton = document.getElementById('btn-predict');
     const output = document.getElementById('output');
     predictButton.addEventListener('click', async () => {
-        // modelController.predictValues(drawingPad.getImageData(), output);
+        // /modelController.predictValues(drawingPad.getImageData(), output);
         const layerValues = await modelController.predictIntermediateLayerOutputs(drawingPad.getImageData(), output);
-        viz.plotLayer(layerValues.layerActivations[6], layerValues.layerShapes[6]);
+        const layerId = 1;
+        viz.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
     });
 
     drawingPad.clearButton.addEventListener('click', () => viz.clearScene());
