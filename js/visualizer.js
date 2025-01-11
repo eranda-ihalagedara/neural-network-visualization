@@ -106,6 +106,21 @@ export class Visualizer {
                 this.cursor.y += this.step;
             }
         } else if (dims === 3) {
+            const maxVal = Math.max(...layerActivations.flat().flat());
+            const minVal = Math.min(...layerActivations.flat().flat());
+            const aRange = maxVal - minVal;
+            for (let i = 0; i < layerActivations.length; i++) {
+                for (let j = 0; j < layerActivations[i].length; j++) {
+                    for (let k = 0; k < layerActivations[i][j].length; k++) {
+                        this.plotCube(0.8, getYlGnBuColor_r((layerActivations[i][j][k]-minVal)/aRange), 0.5, this.cursor);
+                        this.cursor.x += this.step;
+                    }
+                    this.cursor.x = startPos[0];
+                    this.cursor.y += this.step;
+                }
+                this.cursor.y = startPos[1];
+                this.cursor.z += this.step;
+            }            
         }
 
         // for (let i = 0; i < layerActivations.length; i++) {
