@@ -15,8 +15,8 @@ function main() {
     predictButton.addEventListener('click', async () => {
         // /modelController.predictValues(drawingPad.getImageData(), output);
         const layerValues = await modelController.predictIntermediateLayerOutputs(drawingPad.getImageData(), output);
-        const layerId = 1;
-        viz.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
+        viz.plotModel(layerValues);
+        // viz.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
     });
 
     drawingPad.clearButton.addEventListener('click', () => viz.clearScene());
