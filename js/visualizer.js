@@ -24,7 +24,7 @@ export class Visualizer {
         const far = 1000 // the far clipping plane
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color('#111111');
+        this.scene.background = new THREE.Color('#333333');
 
         this.camera = new THREE.PerspectiveCamera(fov, this.width/this.height, near, far)
         this.camera.position.set(30, 30, 30);
@@ -71,6 +71,18 @@ export class Visualizer {
         // this.renderScene();
     }
 
+    renderScene() {
+        this.controls.update( this.clock.getDelta() );
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    clearScene() {
+        
+        this.scene.clear();
+        this.cursor.set(0, 0, 0);
+        // this.renderScene();
+    }
+
     plotCube(size, cubeColor, opacity, position) {
         
         const material = new THREE.MeshBasicMaterial({
@@ -84,18 +96,6 @@ export class Visualizer {
         cube.position.set(position.x, position.y, position.z);
 
         this.scene.add(cube);
-    }
-
-    renderScene() {
-        this.controls.update( this.clock.getDelta() );
-        this.renderer.render(this.scene, this.camera);
-    }
-
-    clearScene() {
-        
-        this.scene.clear();
-        this.cursor.set(0, 0, 0);
-        // this.renderScene();
     }
 
     plotLayer(layerActivations, shape) {
@@ -157,19 +157,31 @@ export class Visualizer {
                 }
                 this.cursor.x = startPos[0];
                 this.cursor.y -= this.step;
-            }            
+            }
+            
+            this.cursor.z -= layerActivations[0][0].length * this.step;
         }
         // this.renderScene();
     }
 
     plotModel(layerValues) {
+        const modelLength = this.getModelLength(layerValues.layerShapes);
+        this.cursor.z = modelLength/2;
 
         for (let layerId = 0; layerId < layerValues.layerActivations.length; layerId++) {
             this.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
             this.cursor.z -= this.layerGap;
         }
+        this.camera.position.set(50, 50, modelLength*3/5);
+        this.camera.lookAt(0, 0, 0);
+    }
 
-        this.camera.lookAt(0, 0, this.cursor.z/2);
+    getModelLength(shapes) {
+        let length = 0;
+        shapes.forEach(shape => {
+            length += shape[shape.length-1] * this.step + this.layerGap;
+        })
+        return length - this.layerGap;
     }
     
 }
