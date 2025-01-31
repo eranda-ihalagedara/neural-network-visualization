@@ -4,6 +4,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { ArcballControls } from 'three/addons/controls/ArcballControls.js';
 import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
 
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import {TextGeometry} from 'three/addons/geometries/TextGeometry.js' 
+
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -69,6 +72,30 @@ export class Visualizer {
         this.renderer.setAnimationLoop( () => this.renderScene());
 
         // this.renderScene();
+
+        // Load font
+        const loader = new FontLoader();
+        loader.load(
+            // resource URL
+            'fonts/helvetiker_regular.typeface.json',
+
+            // onLoad callback
+            ( font ) => {
+                // do something with the font
+                this.font = font;
+                // console.log( font );
+            },
+
+            // onProgress callback
+            function ( xhr ) {
+                console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+            },
+
+            // onError callback
+            function ( err ) {
+                console.log( 'An error happened' );
+            }
+        );
     }
 
     renderScene() {
@@ -102,7 +129,7 @@ export class Visualizer {
         // this.clearScene();
 
         const dims = shape.length;
-        console.log(`dims: ${dims}`);
+        // console.log(`dims: ${dims}`);
         if(dims > 3 ){
             console.log('Layer has more than 3 dimensions');
             return;
@@ -170,6 +197,7 @@ export class Visualizer {
 
         for (let layerId = 0; layerId < layerValues.layerActivations.length; layerId++) {
             this.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
+            this.addLabel(`layerId: ${layerId}`, {x: 10, y: 5, z: this.cursor.z});
             this.cursor.z -= this.layerGap;
         }
         this.camera.position.set(50, 50, modelLength*3/5);
@@ -184,4 +212,22 @@ export class Visualizer {
         return length - this.layerGap;
     }
     
+    addLabel(text, position) {
+        const textGeometry = new TextGeometry(text, {
+            font: this.font,
+            size: 5,
+            depth: 0.2,
+            curveSegments: 12,
+            bevelEnabled: false
+            // bevelThickness: 1,
+            // bevelSize: 1,
+            // bevelOffset: 0,
+            // bevelSegments: 5
+        });
+
+        const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.set(position.x, position.y, position.z);
+        this.scene.add(textMesh);
+    }
 }
