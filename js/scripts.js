@@ -4,7 +4,7 @@ import { Visualizer } from "/js/visualizer.js";
 
 const modelController = new ModelController();
 const drawingPad = new DrawingPad();
-const viz = new Visualizer();
+const viz = new Visualizer('#viz-container', '#viz-canvas');
 
 function main() {
     drawingPad.init();
@@ -13,10 +13,8 @@ function main() {
     const predictButton = document.getElementById('btn-predict');
     const output = document.getElementById('output');
     predictButton.addEventListener('click', async () => {
-        // /modelController.predictValues(drawingPad.getImageData(), output);
         const layerValues = await modelController.predictIntermediateLayerOutputs(drawingPad.getImageData(), output);
         viz.plotModel(layerValues);
-        // viz.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
     });
 
     drawingPad.clearButton.addEventListener('click', () => viz.clearScene());

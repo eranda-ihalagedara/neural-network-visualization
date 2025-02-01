@@ -15,9 +15,9 @@ import { getYlGnBuColor, getYlGnBuColor_r } from './colormap.js';
 
 export class Visualizer {
 
-    constructor() {
-        this.container = document.querySelector('#viz-container');
-        const canvas = document.querySelector('#viz-canvas');
+    constructor(containerId, canvasId) {
+        this.container = document.querySelector(containerId);
+        const canvas = document.querySelector(canvasId);
         
         this.width = this.container.offsetWidth;
         this.height = this.container.offsetHeight;
@@ -33,7 +33,7 @@ export class Visualizer {
         this.camera.position.set(30, 30, 30);
         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-        // camera.position.z = 5;
+        
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
         directionalLight.position.set(0, 2, 5);
         this.scene.add(directionalLight);
@@ -43,8 +43,6 @@ export class Visualizer {
         this.cursor = new THREE.Vector3(1, 0, 0);
         this.step = 1;
         this.layerGap = 20;
-
-        // this.plotCube(1, getYlGnBuColor_r(0.8), 0.5, new THREE.Vector3(1, 2, 0));
         
         this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -104,10 +102,8 @@ export class Visualizer {
     }
 
     clearScene() {
-        
         this.scene.clear();
         this.cursor.set(0, 0, 0);
-        // this.renderScene();
     }
 
     plotCube(size, cubeColor, opacity, position) {
@@ -126,10 +122,9 @@ export class Visualizer {
     }
 
     plotLayer(layerActivations, shape) {
-        // this.clearScene();
 
         const dims = shape.length;
-        // console.log(`dims: ${dims}`);
+
         if(dims > 3 ){
             console.log('Layer has more than 3 dimensions');
             return;
@@ -153,7 +148,8 @@ export class Visualizer {
             const aRange = maxVal - minVal;
             
             for (let i = 0; i < layerActivations.length; i++) {
-                this.plotCube(0.8, getYlGnBuColor_r((layerActivations[i]-minVal)/aRange), 0.8, this.cursor);
+                const actVal = (layerActivations[i]-minVal)/aRange;
+                this.plotCube(0.8, getYlGnBuColor_r(actVal), 0.8, this.cursor);
                 this.cursor.x += this.step;
             }
         } else if (dims === 2) {
@@ -188,7 +184,6 @@ export class Visualizer {
             
             this.cursor.z -= layerActivations[0][0].length * this.step;
         }
-        // this.renderScene();
     }
 
     plotModel(layerValues) {
@@ -215,7 +210,7 @@ export class Visualizer {
     addLabel(text, position) {
         const textGeometry = new TextGeometry(text, {
             font: this.font,
-            size: 5,
+            size: 2,
             depth: 0.2,
             curveSegments: 12,
             bevelEnabled: false
@@ -225,9 +220,37 @@ export class Visualizer {
             // bevelSegments: 5
         });
 
-        const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const textMaterial = new THREE.MeshBasicMaterial({ color: 0x1f1d1d });
         const textMesh = new THREE.Mesh(textGeometry, textMaterial);
         textMesh.position.set(position.x, position.y, position.z);
-        this.scene.add(textMesh);
+        // this.scene.add(textMesh);
+
+        textGeometry.computeBoundingBox();
+        const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
+        const textHeight = textGeometry.boundingBox.max.y - textGeometry.boundingBox.min.y;
+        
+        // Create card geometry
+        const padding = 0.5;
+        const cardGeometry = new THREE.PlaneGeometry(
+            textWidth + padding * 2,
+            textHeight + padding * 2
+        );
+
+        // Create materials
+        const cardMaterial = new THREE.MeshBasicMaterial({ color: 0xeb4034 });
+        
+        // Create meshes
+        const cardMesh = new THREE.Mesh(cardGeometry, cardMaterial);
+        
+        // Position text on card
+        cardMesh.position.set(position.x + textWidth/2, position.y + textHeight/2, position.z - 0.01);
+        
+        // Create a group to hold both card and text
+        const group = new THREE.Group();
+        group.add(cardMesh);
+        group.add(textMesh);
+        
+        // Add group to scene
+        this.scene.add(group);
     }
 }
