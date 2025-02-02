@@ -12,6 +12,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 
 import { getYlGnBuColor, getYlGnBuColor_r } from './colormap.js';
 
+import { makeInstanced } from './instance-test.js';
 
 export class Visualizer {
 
@@ -28,6 +29,7 @@ export class Visualizer {
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color('#333333');
+        this.scene.fog = new THREE.FogExp2( 0xefd1b5, 0.0025 );
 
         this.camera = new THREE.PerspectiveCamera(fov, this.width/this.height, near, far)
         this.camera.position.set(30, 30, 30);
@@ -39,6 +41,11 @@ export class Visualizer {
         this.scene.add(directionalLight);
 
         this.geometry = new THREE.BoxGeometry(1, 1, 1);
+        this.material = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.5 });
 
         this.cursor = new THREE.Vector3(1, 0, 0);
         this.step = 1;
@@ -48,7 +55,8 @@ export class Visualizer {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(this.width, this.height);
         
-        this.controls = new OrbitControls( this.camera, this.renderer.domElement );
+        // this.controls = new OrbitControls( this.camera, this.renderer.domElement );
+        
         // this.controls.autoRotate = true;
         // this.controls.enableDamping = true;
         // this.controls.addEventListener( 'change', ()=>{
@@ -63,9 +71,9 @@ export class Visualizer {
         // this.controls.update();
 
         this.clock = new THREE.Clock();
-        // this.controls = new FirstPersonControls( this.camera, this.renderer.domElement );
-        // this.controls.movementSpeed = 10;
-        // this.controls.lookSpeed = 0.1;
+        this.controls = new FirstPersonControls( this.camera, this.renderer.domElement );
+        this.controls.movementSpeed = 10;
+        this.controls.lookSpeed = 0.01;
 
         this.renderer.setAnimationLoop( () => this.renderScene());
 
@@ -114,7 +122,9 @@ export class Visualizer {
             transparent: true,
             opacity: opacity });
 
-        const cube = new THREE.Mesh(this.geometry, material);
+        this.material.color = 0xaa8855;
+
+        const cube = new THREE.Mesh(this.geometry, this.material);
         cube.scale.set(size, size, size);
         cube.position.set(position.x, position.y, position.z);
 
@@ -172,7 +182,7 @@ export class Visualizer {
                 for (let j = 0; j < layerActivations[i].length; j++) {
                     for (let k = 0; k < layerActivations[i][j].length; k++) {
                         const actVal = (layerActivations[i][j][k]-minVal)/aRange;
-                        this.plotCube(actVal, getYlGnBuColor_r(actVal), actVal, this.cursor);
+                        this.plotCube(0.8, getYlGnBuColor_r(actVal), 1, this.cursor);
                         this.cursor.z -= this.step;
                     }
                     this.cursor.z = startPos[2];
@@ -188,14 +198,18 @@ export class Visualizer {
 
     plotModel(layerValues) {
         const modelLength = this.getModelLength(layerValues.layerShapes);
-        this.cursor.z = modelLength/2;
-
+        // this.cursor.z = modelLength/2;
+        /*
         for (let layerId = 0; layerId < layerValues.layerActivations.length; layerId++) {
             this.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
             this.addLabel(`layerId: ${layerId}`, {x: 10, y: 5, z: this.cursor.z});
             this.cursor.z -= this.layerGap;
+            break;
         }
-        this.camera.position.set(50, 50, modelLength*3/5);
+        // this.camera.position.set(50, 50, modelLength*3/5);*/
+
+        makeInstanced(this.geometry, this.material, this.scene);
+
         this.camera.lookAt(0, 0, 0);
     }
 
@@ -214,10 +228,6 @@ export class Visualizer {
             depth: 0.2,
             curveSegments: 12,
             bevelEnabled: false
-            // bevelThickness: 1,
-            // bevelSize: 1,
-            // bevelOffset: 0,
-            // bevelSegments: 5
         });
 
         const textMaterial = new THREE.MeshBasicMaterial({ color: 0x1f1d1d });
