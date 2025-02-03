@@ -73,7 +73,10 @@ export class Visualizer {
         this.clock = new THREE.Clock();
         this.controls = new FirstPersonControls( this.camera, this.renderer.domElement );
         this.controls.movementSpeed = 10;
-        this.controls.lookSpeed = 0.01;
+        this.controls.lookSpeed = 0.2;
+
+        canvas.addEventListener('mouseout', () => { this.controls.activeLook = false; this.controls.lookAt(0, 0, 0)});
+        canvas.addEventListener('mouseover', () => { this.controls.activeLook = true; console.log(this.controls.activeLook) });
 
         this.renderer.setAnimationLoop( () => this.renderScene());
 

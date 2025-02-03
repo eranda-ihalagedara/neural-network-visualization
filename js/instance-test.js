@@ -22,6 +22,27 @@ const randomizeMatrix = function () {
 
 }();
 
+const setComposition = function () {
+
+    const position = new THREE.Vector3();
+    const quaternion = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+
+    return function ( matrix, i ) {
+
+        matrix.decompose( position, quaternion, scale );
+
+        position.x = i%10;
+        position.y = Math.floor(i/10)%10;
+        position.z = Math.floor(i/100);
+        scale.x = scale.y = scale.z = 0.8;
+
+        matrix.compose( position, quaternion, scale );
+        console.log(i, position.x, position.y, position.z);
+    };
+
+}();
+
 function makeInstanced( geometry, material, scene) {
 
     const matrix = new THREE.Matrix4();
@@ -29,13 +50,14 @@ function makeInstanced( geometry, material, scene) {
 
     for ( let i = 0; i < 1000; i ++ ) {
 
-        randomizeMatrix( matrix );
+        setComposition( matrix, i );
         mesh.setMatrixAt( i, matrix );
+        mesh.setColorAt( i, new THREE.Color( 1000*i ) );
 
     }
 
     scene.add( mesh );
-
+    return mesh;
 }
 
 export { makeInstanced };
