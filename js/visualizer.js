@@ -7,9 +7,6 @@ import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.j
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import {TextGeometry} from 'three/addons/geometries/TextGeometry.js' 
 
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-
 import { getYlGnBuColor, getYlGnBuColor_r } from './colormap.js';
 
 import { makeInstanced } from './instance-test.js';
@@ -29,11 +26,10 @@ export class Visualizer {
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color('#333333');
-        this.scene.fog = new THREE.FogExp2( 0xefd1b5, 0.0025 );
 
         this.camera = new THREE.PerspectiveCamera(fov, this.width/this.height, near, far)
         this.camera.position.set(30, 30, 30);
-        this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+        // this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -45,7 +41,7 @@ export class Visualizer {
             color: 0xffffff,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.5 });
+            opacity: 0.8 });
 
         this.cursor = new THREE.Vector3(1, 0, 0);
         this.step = 1;
@@ -56,55 +52,20 @@ export class Visualizer {
         this.renderer.setSize(this.width, this.height);
         
         // this.controls = new OrbitControls( this.camera, this.renderer.domElement );
-        
-        // this.controls.autoRotate = true;
-        // this.controls.enableDamping = true;
-        // this.controls.addEventListener( 'change', ()=>{
-        //     this.renderScene();
-        // } );
-        // this.controls.update();
-        
-        // this.controls = new ArcballControls( this.camera, this.renderer.domElement, this.scene );
-        // this.controls.addEventListener( 'change', ()=>{
-        //     this.renderScene();
-        // } );
-        // this.controls.update();
 
-        this.clock = new THREE.Clock();
         this.controls = new FirstPersonControls( this.camera, this.renderer.domElement );
         this.controls.movementSpeed = 10;
         this.controls.lookSpeed = 0.2;
 
         canvas.addEventListener('mouseout', () => { this.controls.activeLook = false; this.controls.lookAt(0, 0, 0)});
-        canvas.addEventListener('mouseover', () => { this.controls.activeLook = true; console.log(this.controls.activeLook) });
+        canvas.addEventListener('mouseover', () => { this.controls.activeLook = true});
+
+        this.clock = new THREE.Clock();
 
         this.renderer.setAnimationLoop( () => this.renderScene());
 
-        // this.renderScene();
-
         // Load font
-        const loader = new FontLoader();
-        loader.load(
-            // resource URL
-            'fonts/helvetiker_regular.typeface.json',
-
-            // onLoad callback
-            ( font ) => {
-                // do something with the font
-                this.font = font;
-                // console.log( font );
-            },
-
-            // onProgress callback
-            function ( xhr ) {
-                console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-            },
-
-            // onError callback
-            function ( err ) {
-                console.log( 'An error happened' );
-            }
-        );
+        this.loadFont();
     }
 
     renderScene() {
@@ -153,39 +114,68 @@ export class Visualizer {
         this.cursor.y = startPos[1];
         startPos[2] = this.cursor.z;
 
-        const unitVecs = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+        const matrix = new THREE.Matrix4();
+        let mesh;
 
         if (dims === 1) {
             const maxVal = Math.max(...layerActivations);   
             const minVal = Math.min(...layerActivations);
             const aRange = maxVal - minVal;
             
+            mesh = new THREE.InstancedMesh( this.geometry, this.material, layerActivations.length );
+
             for (let i = 0; i < layerActivations.length; i++) {
                 const actVal = (layerActivations[i]-minVal)/aRange;
-                this.plotCube(0.8, getYlGnBuColor_r(actVal), 0.8, this.cursor);
+                // this.plotCube(0.8, getYlGnBuColor_r(actVal), 0.8, this.cursor);
+                matrix.compose( this.cursor, new THREE.Quaternion(), new THREE.Vector3(0.8, 0.8, 0.8) );
+                mesh.setMatrixAt( i, matrix );
+                mesh.setColorAt( i, new THREE.Color(getYlGnBuColor_r(actVal)) );
                 this.cursor.x += this.step;
             }
+
         } else if (dims === 2) {
             const maxVal = Math.max(...layerActivations.flat());   
             const minVal = Math.min(...layerActivations.flat());
             const aRange = maxVal - minVal;
+
+            mesh = new THREE.InstancedMesh( this.geometry, this.material, layerActivations.length*layerActivations[0].length );
+
             for (let i = 0; i < layerActivations.length; i++) {
-                for (let j = 0; j < layerActivations[i].length; j++) {
-                    this.plotCube(0.8, getYlGnBuColor((layerActivations[i][j]-minVal)/aRange), 0.5, this.cursor);
+                for (let j = 0; j < layerActivations[0].length; j++) {
+                    const actVal = (layerActivations[i]-minVal)/aRange;
+                    // this.plotCube(0.8, getYlGnBuColor(actVal), 0.5, this.cursor);
+                    matrix.compose( this.cursor, new THREE.Quaternion(), new THREE.Vector3(0.8, 0.8, 0.8) );
+                    mesh.setMatrixAt( i*layerActivations[0].length + j, matrix );
+                    mesh.setColorAt( i*layerActivations[0].length + j, new THREE.Color(getYlGnBuColor_r(actVal)) );
+                    
                     this.cursor.x += this.step;
                 }
                 this.cursor.x = startPos[0];
                 this.cursor.y += this.step;
             }
+
         } else if (dims === 3) {
             const maxVal = Math.max(...layerActivations.flat().flat());
             const minVal = Math.min(...layerActivations.flat().flat());
             const aRange = maxVal - minVal;
+
+            mesh = new THREE.InstancedMesh( this.geometry, this.material, layerActivations.length*layerActivations[0].length*layerActivations[0][0].length );
+
+            const quaternion = new THREE.Quaternion();
+            const scale = new THREE.Vector3(0.8, 0.8, 0.8);
+            
             for (let i = 0; i < layerActivations.length; i++) {
-                for (let j = 0; j < layerActivations[i].length; j++) {
-                    for (let k = 0; k < layerActivations[i][j].length; k++) {
+                for (let j = 0; j < layerActivations[0].length; j++) {
+                    for (let k = 0; k < layerActivations[0][0].length; k++) {
                         const actVal = (layerActivations[i][j][k]-minVal)/aRange;
-                        this.plotCube(0.8, getYlGnBuColor_r(actVal), 1, this.cursor);
+                        // this.plotCube(0.8, getYlGnBuColor_r(actVal), 1, this.cursor);
+                        // this.setComposition(matrix, this.cursor);
+                        scale.x = scale.y = scale.z = actVal;
+                        matrix.compose( this.cursor, quaternion, scale );
+
+                        mesh.setMatrixAt( i*layerActivations[0].length*layerActivations[0][0].length + j*layerActivations[0][0].length + k, matrix );
+                        mesh.setColorAt( i*layerActivations[0].length*layerActivations[0][0].length + j*layerActivations[0][0].length + k, new THREE.Color(getYlGnBuColor_r(actVal)) );
+                        
                         this.cursor.z -= this.step;
                     }
                     this.cursor.z = startPos[2];
@@ -197,21 +187,23 @@ export class Visualizer {
             
             this.cursor.z -= layerActivations[0][0].length * this.step;
         }
+
+        if (mesh) {
+            this.scene.add( mesh );
+        };
     }
 
     plotModel(layerValues) {
         const modelLength = this.getModelLength(layerValues.layerShapes);
-        // this.cursor.z = modelLength/2;
-        /*
+        this.cursor.z = modelLength/2;
+ 
         for (let layerId = 0; layerId < layerValues.layerActivations.length; layerId++) {
             this.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
             this.addLabel(`layerId: ${layerId}`, {x: 10, y: 5, z: this.cursor.z});
             this.cursor.z -= this.layerGap;
-            break;
         }
-        // this.camera.position.set(50, 50, modelLength*3/5);*/
 
-        makeInstanced(this.geometry, this.material, this.scene);
+        this.camera.position.set(25, 25, modelLength*0.6);
 
         this.camera.lookAt(0, 0, 0);
     }
@@ -224,6 +216,27 @@ export class Visualizer {
         return length - this.layerGap;
     }
     
+    loadFont() {
+        const loader = new FontLoader();
+        loader.load(
+            // resource URL
+            'fonts/helvetiker_regular.typeface.json',
+
+            // onLoad callback
+            ( font ) => {
+                this.font = font;
+            },
+
+            // onProgress callback
+            function ( xhr ) {
+            },
+
+            // onError callback
+            function ( err ) {
+                console.log( 'Error in loading font' );
+            }
+        );
+    }
     addLabel(text, position) {
         const textGeometry = new TextGeometry(text, {
             font: this.font,
