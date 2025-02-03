@@ -29,9 +29,7 @@ export class Visualizer {
 
         this.camera = new THREE.PerspectiveCamera(fov, this.width/this.height, near, far)
         this.camera.position.set(30, 30, 30);
-        // this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-        
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
         directionalLight.position.set(0, 2, 5);
         this.scene.add(directionalLight);
@@ -50,49 +48,28 @@ export class Visualizer {
         this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(this.width, this.height);
-        
-        // this.controls = new OrbitControls( this.camera, this.renderer.domElement );
-
-        this.controls = new FirstPersonControls( this.camera, this.renderer.domElement );
-        this.controls.movementSpeed = 10;
-        this.controls.lookSpeed = 0.2;
-
-        canvas.addEventListener('mouseout', () => { this.controls.activeLook = false; this.controls.lookAt(0, 0, 0)});
-        canvas.addEventListener('mouseover', () => { this.controls.activeLook = true});
 
         this.clock = new THREE.Clock();
-
         this.renderer.setAnimationLoop( () => this.renderScene());
 
-        // Load font
+        this.setControls();
+        
         this.loadFont();
     }
 
-    renderScene() {
-        this.controls.update( this.clock.getDelta() );
-        this.renderer.render(this.scene, this.camera);
-    }
+    plotModel(layerValues) {
+        const modelLength = this.getModelLength(layerValues.layerShapes);
+        this.cursor.z = modelLength/2;
+ 
+        for (let layerId = 0; layerId < layerValues.layerActivations.length; layerId++) {
+            this.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
+            this.addLabel(`layerId: ${layerId}`, {x: 10, y: 5, z: this.cursor.z});
+            this.cursor.z -= this.layerGap;
+        }
 
-    clearScene() {
-        this.scene.clear();
-        this.cursor.set(0, 0, 0);
-    }
+        this.camera.position.set(25, 25, modelLength*0.6);
 
-    plotCube(size, cubeColor, opacity, position) {
-        
-        const material = new THREE.MeshBasicMaterial({
-            color: cubeColor,
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: opacity });
-
-        this.material.color = 0xaa8855;
-
-        const cube = new THREE.Mesh(this.geometry, this.material);
-        cube.scale.set(size, size, size);
-        cube.position.set(position.x, position.y, position.z);
-
-        this.scene.add(cube);
+        this.camera.lookAt(0, 0, 0);
     }
 
     plotLayer(layerActivations, shape) {
@@ -104,15 +81,11 @@ export class Visualizer {
             return;
         }
 
-        const startPos = [0, 0, 0];
-        shape.forEach((dim, i) => {
-            startPos[i] = - dim/2;
-        })
-        startPos[1] = -startPos[1];
-
-        this.cursor.x = startPos[0];
-        this.cursor.y = startPos[1];
-        startPos[2] = this.cursor.z;
+        // Set an anchor position for the layer activations are centred around z-axis
+        const anchorPos = shape.map((dim, i) => -dim / 2).concat([0, 0, 0]).slice(0, 3);
+        anchorPos[1] = -anchorPos[1];
+        [this.cursor.x, this.cursor.y] = anchorPos;
+        anchorPos[2] = this.cursor.z;
 
         const matrix = new THREE.Matrix4();
         let mesh;
@@ -126,8 +99,8 @@ export class Visualizer {
 
             for (let i = 0; i < layerActivations.length; i++) {
                 const actVal = (layerActivations[i]-minVal)/aRange;
-                // this.plotCube(0.8, getYlGnBuColor_r(actVal), 0.8, this.cursor);
                 matrix.compose( this.cursor, new THREE.Quaternion(), new THREE.Vector3(0.8, 0.8, 0.8) );
+                
                 mesh.setMatrixAt( i, matrix );
                 mesh.setColorAt( i, new THREE.Color(getYlGnBuColor_r(actVal)) );
                 this.cursor.x += this.step;
@@ -139,18 +112,20 @@ export class Visualizer {
             const aRange = maxVal - minVal;
 
             mesh = new THREE.InstancedMesh( this.geometry, this.material, layerActivations.length*layerActivations[0].length );
-
+            const quaternion = new THREE.Quaternion();
+            const scale = new THREE.Vector3(0.8, 0.8, 0.8);
+            
             for (let i = 0; i < layerActivations.length; i++) {
                 for (let j = 0; j < layerActivations[0].length; j++) {
                     const actVal = (layerActivations[i]-minVal)/aRange;
-                    // this.plotCube(0.8, getYlGnBuColor(actVal), 0.5, this.cursor);
-                    matrix.compose( this.cursor, new THREE.Quaternion(), new THREE.Vector3(0.8, 0.8, 0.8) );
+                    matrix.compose( this.cursor, quaternion, scale );
+                    
                     mesh.setMatrixAt( i*layerActivations[0].length + j, matrix );
                     mesh.setColorAt( i*layerActivations[0].length + j, new THREE.Color(getYlGnBuColor_r(actVal)) );
                     
                     this.cursor.x += this.step;
                 }
-                this.cursor.x = startPos[0];
+                this.cursor.x = anchorPos[0];
                 this.cursor.y += this.step;
             }
 
@@ -168,8 +143,6 @@ export class Visualizer {
                 for (let j = 0; j < layerActivations[0].length; j++) {
                     for (let k = 0; k < layerActivations[0][0].length; k++) {
                         const actVal = (layerActivations[i][j][k]-minVal)/aRange;
-                        // this.plotCube(0.8, getYlGnBuColor_r(actVal), 1, this.cursor);
-                        // this.setComposition(matrix, this.cursor);
                         scale.x = scale.y = scale.z = actVal;
                         matrix.compose( this.cursor, quaternion, scale );
 
@@ -178,10 +151,10 @@ export class Visualizer {
                         
                         this.cursor.z -= this.step;
                     }
-                    this.cursor.z = startPos[2];
+                    this.cursor.z = anchorPos[2];
                     this.cursor.x += this.step;
                 }
-                this.cursor.x = startPos[0];
+                this.cursor.x = anchorPos[0];
                 this.cursor.y -= this.step;
             }
             
@@ -193,19 +166,42 @@ export class Visualizer {
         };
     }
 
-    plotModel(layerValues) {
-        const modelLength = this.getModelLength(layerValues.layerShapes);
-        this.cursor.z = modelLength/2;
- 
-        for (let layerId = 0; layerId < layerValues.layerActivations.length; layerId++) {
-            this.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
-            this.addLabel(`layerId: ${layerId}`, {x: 10, y: 5, z: this.cursor.z});
-            this.cursor.z -= this.layerGap;
-        }
+    renderScene() {
+        this.controls.update(this.clock.getDelta());
+        this.renderer.render(this.scene, this.camera);
+    }
 
-        this.camera.position.set(25, 25, modelLength*0.6);
+    clearScene() {
+        this.scene.clear();
+        this.cursor.set(0, 0, 0);
+    }
 
-        this.camera.lookAt(0, 0, 0);
+    setControls() {
+        // this.controls = new OrbitControls( this.camera, this.renderer.domElement );
+
+        this.controls = new FirstPersonControls( this.camera, this.renderer.domElement );
+        this.controls.movementSpeed = 10;
+        this.controls.lookSpeed = 0.2;
+
+        canvas.addEventListener('mouseout', () => { this.controls.activeLook = false; this.controls.lookAt(0, 0, 0)});
+        canvas.addEventListener('mouseover', () => { this.controls.activeLook = true});
+    }
+
+    plotCube(size, cubeColor, opacity, position) {
+        
+        const material = new THREE.MeshBasicMaterial({
+            color: cubeColor,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: opacity });
+
+        this.material.color = 0xaa8855;
+
+        const cube = new THREE.Mesh(this.geometry, this.material);
+        cube.scale.set(size, size, size);
+        cube.position.set(position.x, position.y, position.z);
+
+        this.scene.add(cube);
     }
 
     getModelLength(shapes) {
