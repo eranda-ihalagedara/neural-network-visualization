@@ -3,13 +3,12 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { ArcballControls } from 'three/addons/controls/ArcballControls.js';
 import { FirstPersonControls } from 'three/addons/controls/FirstPersonControls.js';
+import { MapControls } from 'three/addons/controls/MapControls.js';
 
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import {TextGeometry} from 'three/addons/geometries/TextGeometry.js' 
 
 import { getYlGnBuColor, getYlGnBuColor_r } from './colormap.js';
-
-import { makeInstanced } from './instance-test.js';
 
 export class Visualizer {
 
@@ -52,7 +51,7 @@ export class Visualizer {
         this.clock = new THREE.Clock();
         this.renderer.setAnimationLoop( () => this.renderScene());
 
-        this.setControls();
+        this.setControls(canvas);
         
         this.loadFont();
     }
@@ -62,12 +61,14 @@ export class Visualizer {
         this.cursor.z = modelLength/2;
  
         for (let layerId = 0; layerId < layerValues.layerActivations.length; layerId++) {
-            this.plotLayer(layerValues.layerActivations[layerId], layerValues.layerShapes[layerId]);
-            this.addLabel(`layerId: ${layerId}`, {x: 10, y: 5, z: this.cursor.z});
+            const shape = layerValues.layerShapes[layerId];
+            this.plotLayer(layerValues.layerActivations[layerId], shape);
+            this.addLabel(`Layer: ${layerId}`, {x: 10, y: shape[1]? shape[1]/2 + 5: 5, z: this.cursor.z});
+
             this.cursor.z -= this.layerGap;
         }
 
-        this.camera.position.set(25, 25, modelLength*0.6);
+        this.camera.position.set(25, 25, modelLength*0.7);
 
         this.camera.lookAt(0, 0, 0);
     }
@@ -163,6 +164,23 @@ export class Visualizer {
 
         if (mesh) {
             this.scene.add( mesh );
+            mesh.computeBoundingBox();
+            // const box = new THREE.BoxHelper(mesh, 0xffff00);
+            const boundingBox = new THREE.Box3();
+            boundingBox.copy(mesh.boundingBox);
+
+            const size = new THREE.Vector3();
+            mesh.boundingBox.getSize(size);
+            const boxGeometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+
+            const edges = new THREE.EdgesGeometry( boxGeometry ); 
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) ); 
+
+            const center = new THREE.Vector3();
+            mesh.boundingBox.getCenter(center);
+            line.position.copy(center);
+
+            this.scene.add( line );
         };
     }
 
@@ -176,15 +194,18 @@ export class Visualizer {
         this.cursor.set(0, 0, 0);
     }
 
-    setControls() {
+    setControls(canvas) {
         // this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 
-        this.controls = new FirstPersonControls( this.camera, this.renderer.domElement );
-        this.controls.movementSpeed = 10;
-        this.controls.lookSpeed = 0.2;
+        // this.controls = new FirstPersonControls( this.camera, this.renderer.domElement );
+        // this.controls.movementSpeed = 50;
+        // this.controls.lookSpeed = 0.2;
 
-        canvas.addEventListener('mouseout', () => { this.controls.activeLook = false; this.controls.lookAt(0, 0, 0)});
-        canvas.addEventListener('mouseover', () => { this.controls.activeLook = true});
+        // canvas.addEventListener('mouseout', () => { this.controls.activeLook = false; this.controls.lookAt(0, 0, 0)});
+        // canvas.addEventListener('mouseover', () => { this.controls.activeLook = true});
+
+        this.controls = new MapControls( this.camera, this.renderer.domElement );
+        this.controls.enableDamping = true;
     }
 
     plotCube(size, cubeColor, opacity, position) {
@@ -207,7 +228,10 @@ export class Visualizer {
     getModelLength(shapes) {
         let length = 0;
         shapes.forEach(shape => {
-            length += shape[shape.length-1] * this.step + this.layerGap;
+            length += this.step + this.layerGap;
+            if(shape.length == 3) {
+                length += shape[2] * this.step;
+            }
         })
         return length - this.layerGap;
     }
