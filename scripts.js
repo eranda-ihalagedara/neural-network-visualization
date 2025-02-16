@@ -1,4 +1,4 @@
-import { DrawingPad } from "/js/drawing-pad.js";
+import { DrawingPad } from "/drawing-pad.js";
 import { NNVisualizer } from "/src/index.js";
 
 const drawingPad = new DrawingPad();
