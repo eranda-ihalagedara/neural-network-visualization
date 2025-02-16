@@ -9,6 +9,7 @@ module.exports = {
     libraryTarget: "umd",  // Supports CommonJS, AMD, and global variable
     globalObject: "this" // Ensures compatibility with Node.js and browser
   },
+  devtool: "eval-source-map",
   module: {
     rules: [
       {
@@ -27,5 +28,5 @@ module.exports = {
     three: "three", // Prevents bundling Three.js (users install it separately)
     "@tensorflow/tfjs": "@tensorflow/tfjs"
   },
-  mode: "production"
+  mode: "development"
 };
