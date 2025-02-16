@@ -52,6 +52,7 @@ class Visualizer {
     }
 
     plotModel(layerValues) {
+        this.clearScene();
         const modelLength = this.getModelLength(layerValues.layerShapes);
         this.cursor.z = modelLength/2;
  
@@ -209,7 +210,7 @@ class Visualizer {
         const loader = new FontLoader();
         loader.load(
             // resource URL
-            'fonts/helvetiker_regular.typeface.json',
+            'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
 
             // onLoad callback
             ( font ) => {

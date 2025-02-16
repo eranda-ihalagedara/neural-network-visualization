@@ -16,6 +16,10 @@ class NNVisualizer {
         const layerValues = await this.modelController.predictIntermediateLayerOutputs(modelInput);
         this.viz.plotModel(layerValues);
     }
+
+    clearScene() {
+        this.viz.clearScene();
+    }
 }
 
-export default NNVisualizer;
+export { NNVisualizer };

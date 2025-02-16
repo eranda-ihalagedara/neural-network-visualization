@@ -1,23 +1,28 @@
 import { DrawingPad } from "/js/drawing-pad.js";
-import { ModelController } from "/js/model-controller.js";
-import { Visualizer } from "/js/visualizer.js";
+import { NNVisualizer } from "/src/index.js";
 
-const modelController = new ModelController();
 const drawingPad = new DrawingPad();
-const viz = new Visualizer('#viz-container', '#viz-canvas');
 
 function main() {
     drawingPad.init();
-    modelController.loadModel();
-    
+
+    const vis = new NNVisualizer();
+    vis.init('models/mnist/saved_model/mnist-model.json', '#viz-container', '#viz-canvas');
+
     const predictButton = document.getElementById('btn-predict');
-    const output = document.getElementById('output');
     predictButton.addEventListener('click', async () => {
-        const layerValues = await modelController.predictIntermediateLayerOutputs(drawingPad.getImageData(), output);
-        viz.plotModel(layerValues);
+        const ctxImage = drawingPad.getImageData();
+        const inputImg = tf.tidy(() => {
+            const image = tf.browser.fromPixels(ctxImage, 1);
+            const reImg = image.resizeBilinear([28,28]).toFloat().div(tf.scalar(255));
+            return tf.expandDims(reImg, 0);
+        });
+
+        await vis.predictAndVisualize(inputImg);
     });
 
-    drawingPad.clearButton.addEventListener('click', () => viz.clearScene());
+    drawingPad.clearButton.addEventListener('click', () => vis.clearScene());
+
 }
 
 main();

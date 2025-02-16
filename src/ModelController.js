@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs';
+// import * as TF from '@tensorflow/tfjs';
 
 class ModelController {
  
@@ -14,7 +14,7 @@ class ModelController {
             outputs: this.model.layers.map(layer => layer.output)
           });
         this.model.layers.forEach((layer, index) => {
-            console.log(`Layer ${index}: ${layer.outputShape.slice(1)}`);
+            console.log(`Layer ${index}: [${layer.outputShape.slice(1)}]`);
         })
     }
 
@@ -24,12 +24,6 @@ class ModelController {
             return;
         }
         
-        // const inputImg = tf.tidy(() => {
-        //     const image = tf.browser.fromPixels(ctxImage, 1);
-        //     const reImg = image.resizeBilinear([28,28]).toFloat().div(tf.scalar(255));
-        //     return tf.expandDims(reImg, 0);
-        // });
-
         const pred = tf.tidy(() => {
             const preds = this.intermediateModel.predict(inputImg);
             return preds;
