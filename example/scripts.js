@@ -1,5 +1,5 @@
-import { DrawingPad } from "/drawing-pad.js";
-import { NNVisualizer } from "/src/index.js";
+import { DrawingPad } from "./DrawingPad.js";
+import { NNVisualizer } from "../src/index.js";
 
 const drawingPad = new DrawingPad();
 
@@ -7,7 +7,7 @@ function main() {
     drawingPad.init();
 
     const vis = new NNVisualizer();
-    vis.init('models/mnist/saved_model/mnist-model.json', '#viz-container', '#viz-canvas');
+    vis.init('./models/mnist/saved_model/mnist-model.json', '#viz-container', '#viz-canvas');
 
     const predictButton = document.getElementById('btn-predict');
     predictButton.addEventListener('click', async () => {
