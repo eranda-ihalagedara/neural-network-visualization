@@ -1,3 +1,9 @@
+*{
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
 body{
     font-family: "Nunito", sans-serif;
     font-optical-sizing: auto;
@@ -7,6 +13,7 @@ body{
 }
 
 header{
+    margin-top: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -27,9 +34,14 @@ footer{
     height: 50px;
 }
 
+.description{
+    margin-top: 20px;
+    text-align: center;
+}
+
 .ml-pipeline{
     display: flex;
-    height: 400px;
+    height: 320px;
     flex-direction: row;
     align-items: center;
     justify-content: center;
