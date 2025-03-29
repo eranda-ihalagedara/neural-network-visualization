@@ -45,6 +45,10 @@ export class DrawingPad {
     
         [this.lastX, this.lastY] = [e.offsetX, e.offsetY];
     }
+
+    showOutput(output) {
+        this.output.innerText = output;
+    }
     
     stopDrawing() {
         this.isDrawing = false;

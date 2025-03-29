@@ -18,7 +18,9 @@ function main() {
             return tf.expandDims(reImg, 0);
         });
 
-        await vis.predictAndVisualize(inputImg);
+        const output = await vis.predictAndVisualize(inputImg);
+        const predictedLabel = String(output.indexOf(Math.max(...output)));
+        drawingPad.showOutput(predictedLabel);
     });
 
     drawingPad.clearButton.addEventListener('click', () => vis.clearScene());

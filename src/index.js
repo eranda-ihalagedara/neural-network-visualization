@@ -12,8 +12,9 @@ class NNVisualizer {
     }
 
     async predictAndVisualize(modelInput) {
-        const layerValues = await this.modelController.predictIntermediateLayerOutputs(modelInput);
-        this.viz.plotModel(layerValues);
+        const {layerActivations, layerShapes} = await this.modelController.predictIntermediateOutputs(modelInput);
+        this.viz.plotModel(layerActivations, layerShapes);
+        return layerActivations[layerActivations.length - 1];
     }
 
     clearScene() {

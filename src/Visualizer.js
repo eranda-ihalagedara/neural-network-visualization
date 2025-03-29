@@ -51,14 +51,14 @@ class Visualizer {
         this.loadFont();
     }
 
-    plotModel(layerValues) {
+    plotModel(layerActivations, layerShapes) {
         this.clearScene();
-        const modelLength = this.getModelLength(layerValues.layerShapes);
+        const modelLength = this.getModelLength(layerShapes);
         this.cursor.z = modelLength/2;
  
-        for (let layerId = 0; layerId < layerValues.layerActivations.length; layerId++) {
-            const shape = layerValues.layerShapes[layerId];
-            this.plotLayer(layerValues.layerActivations[layerId], shape);
+        for (let layerId = 0; layerId < layerActivations.length; layerId++) {
+            const shape = layerShapes[layerId];
+            this.plotLayer(layerActivations[layerId], shape);
             this.addLabel(`Layer: ${layerId}`, {x: 10, y: shape[1]? shape[1]/2 + 5: 5, z: this.cursor.z});
 
             this.cursor.z -= this.layerGap;

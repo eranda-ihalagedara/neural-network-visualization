@@ -18,7 +18,7 @@ class ModelController {
         })
     }
 
-    async predictIntermediateLayerOutputs(inputImg) {
+    async predictIntermediateOutputs(inputImg) {
         if (!this.intermediateModel) {
             console.log('Intermediate Model not loaded');
             return;
