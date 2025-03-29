@@ -1,5 +1,5 @@
 import { DrawingPad } from "./DrawingPad.js";
-import { NNVisualizer } from "../src/index.js";
+import NNVisualizer from "../dist/nn-visualizer.js";
 
 const drawingPad = new DrawingPad();
 

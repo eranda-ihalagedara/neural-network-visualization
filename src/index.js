@@ -1,7 +1,6 @@
 import ModelController from "./ModelController.js";
 import Visualizer from "./Visualizer.js";
 
-
 class NNVisualizer {
     constructor() {
         this.modelController = new ModelController();
@@ -22,4 +21,4 @@ class NNVisualizer {
     }
 }
 
-export { NNVisualizer };
+export default NNVisualizer;

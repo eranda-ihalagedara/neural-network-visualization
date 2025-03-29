@@ -5,9 +5,10 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"), // Output directory
     filename: "nn-visualizer.js",  // Output file
-    library: "NeuralNetworkVisualizer", // Library name for UMD
-    libraryTarget: "umd",  // Supports CommonJS, AMD, and global variable
-    globalObject: "this" // Ensures compatibility with Node.js and browser
+    libraryTarget: "module",
+  },
+  experiments: {
+    outputModule: true
   },
   devtool: "eval-source-map",
   module: {
@@ -28,5 +29,5 @@ module.exports = {
     three: "three", // Prevents bundling Three.js (users install it separately)
     "@tensorflow/tfjs": "@tensorflow/tfjs"
   },
-  mode: "development"
+  mode: "production"
 };
