@@ -3,7 +3,7 @@ A lightweight javascript library to visualize neural network models build on top
 
 ## Usage
 
-Download the repo or clone with `git clone https://github.com/eranda-ihalagedara/neural-network-visualization.git` and have the `src` directory in your project folder.
+Download the repo or clone with `git clone https://github.com/eranda-ihalagedara/neural-network-visualization.git` and have the `nn-visualizer.js` file in your project folder.
 
 ### Setting up dependancies
 
@@ -39,7 +39,7 @@ A TensorFlow model has to be saved in `.json` format.
 - Import the `NNVisualizer` class to your script.
 
 ```
-import { NNVisualizer } from "../src/index.js";
+import NNVisualizer from "./jss/nn-visualizer.js";
 ```
 
 - Create the visualizer object and initiate with path to saved model, container id and canvas id.
@@ -59,6 +59,10 @@ await vis.predictAndVisualize(modelInput);
 
 ## Example
 A demo of the library can be found in [here](https://eranda-ihalagedara.github.io/neural-network-visualization/example/index.html). It uses a neural network trained on MNIST dataset and visualize the activations taking in a drawing of a digit on a canvas.
+
+<img src="img/output.gif"
+     alt="Example"
+     height="480px" />
 
 ## References
 1. https://medium.com/ailab-telu/learn-and-play-with-tensorflow-js-part-3-dd31fcab4c4b
