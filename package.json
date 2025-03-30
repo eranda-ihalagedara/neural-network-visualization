@@ -14,7 +14,7 @@
     "visualize"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "peerDependencies": {
     "@tensorflow/tfjs": "^4.22.0",
     "three": "^0.173.0"
